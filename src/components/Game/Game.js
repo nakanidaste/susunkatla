@@ -5,14 +5,17 @@ import Keyboard from '../Keyboard'
 import Clipboard from '@react-native-community/clipboard'
 import words from '../../words'
 import styles from './Game.styles'
-import { copyArray, getDayOfTheYear } from '../utils'
+import { copyArray, getDayOfTheYear, getDayKey } from '../utils'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import EndScreen from '../EndScreen'
 
 const NUMBER_OF_TRIES = 6
 
 const dayOfTheYear = getDayOfTheYear()
+const dayKey = getDayKey()
 
 const Game = () => {
+  // AsyncStorage.removeItem("@game")
   const word = words[dayOfTheYear]
   const letters = word.split('') // ['h', 'e', 'l', 'l', 'o']
 
@@ -40,18 +43,25 @@ const Game = () => {
 
   const persisState = async () => {
       // write all the state variables in async storage
-      const data = {
+      const dataForToday = {
           rows,
           curCol,
           curRow,
-          gameState
+          gameState,
       }
 
       try {
-        const dataString = JSON.stringify(data) 
+        const existingStateString = await AsyncStorage.getItem("@game")
+        const existingState = existingStateString 
+          ? JSON.parse(existingStateString) 
+          : {}
+
+        existingState[dayKey] = dataForToday
+
+        const dataString = JSON.stringify(existingState)
         await AsyncStorage.setItem("@game", dataString)
       } catch(e) {
-          console.log("Failed to write data to async storage", e)
+        console.log("Failed to write data to async storage", e)
       }
   }
 
@@ -59,14 +69,14 @@ const Game = () => {
       const dataString = await AsyncStorage.getItem("@game")
       try {
         const data = JSON.parse(dataString)
-        setRows(data.rows)
-        setCurCol(data.curCol)
-        setCurRow(data.curRow)
-        setGameState(data.gameState)
+        const day = data[dayKey]
+        setRows(day.rows)
+        setCurCol(day.curCol)
+        setCurRow(day.curRow)
+        setGameState(day.gameState)
       } catch(e) {
           console.log("Couldn't parse the state")
       }
-      
 
       setLoaded(true)
   }
@@ -180,6 +190,12 @@ const Game = () => {
 
   if (!loaded) {
       return <ActivityIndicator />
+  }
+
+  if (gameState !== "bermain") {
+    return (
+      <EndScreen menang={ gameState === "menang" } />
+    )
   }
 
   return (
