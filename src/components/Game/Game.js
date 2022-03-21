@@ -15,7 +15,7 @@ const dayOfTheYear = getDayOfTheYear()
 const dayKey = getDayKey()
 
 const Game = () => {
-  //AsyncStorage.removeItem('@game');
+  //AsyncStorage.removeItem('@game')
   const word = words[dayOfTheYear]
   const letters = word.split('')
 
@@ -84,7 +84,9 @@ const Game = () => {
 
   const checkGameState = () => {
     if (checkIfWon() && gameState !== 'menang') {
-      setGameState('menang')
+      setTimeout(() => {
+        setGameState('menang')
+      }, 1000)
     } else if (checkIfLost() && gameState !== 'kalah') {
       setGameState('kalah')
     }
@@ -106,6 +108,8 @@ const Game = () => {
     }
 
     const updatedRows = copyArray(rows)
+    // const letter = rows[curRow].join('')
+    // console.log(letter)
 
     if (key === CLEAR) {
       const prevCol = curCol - 1
@@ -121,6 +125,12 @@ const Game = () => {
       if (curCol === rows[0].length) {
         setCurRow(curRow + 1)
         setCurCol(0)
+
+        // fetch(`http://localhost:8000/check/?word=${letter}`)
+        //   .then(res => res.json())
+        //   .then(json => {
+        //     console.log(json)
+        //   })
       }
       return
     }
